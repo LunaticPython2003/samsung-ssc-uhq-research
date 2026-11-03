@@ -89,6 +89,12 @@ BlueZ offers an endpoint/transport interface for future use, and a [read-only pr
 
 Run the new offline tests with `python3 -m unittest -q test_ssc_linux_bridge.py`.
 
+## Peak bitrate audit (verified on the Fold7)
+
+The [peak-bitrate audit](docs/ssc-peak-bitrate-audit-2026-11-03.md) compares Samsung's public 2,304-kbps claim reported by third-party publications with directly analyzed device binaries. The inspected software encoder has **13 explicitly named header modes, with 886kbps highest**; higher requests return its generic `0xF3` code. Separately, Samsung's AIDL Bluetooth offload library contains an SSC-specific validator and capabilities object, but no confirmed multi-megabit encoded-transmission rate. The distinction between format, encoder output, and *over-the-air Bluetooth bitrate* remains essential.
+
+The audit is reproducible using the source-only probe `ssc_bitrate_catalog.c` and `bash scripts/check-bitrate-catalog.sh`. Only private local output is saved under `tools/`, and the Samsung binaries are excluded from Git.
+
 ## What's left
 
 1. Obtain an actual HCI AVDTP exchange to settle the vendor codec ID and peer configuration.
