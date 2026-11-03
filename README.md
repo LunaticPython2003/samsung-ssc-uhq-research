@@ -73,6 +73,12 @@ Run all available local tests:
     python -m unittest -v test_ssc_rpc.py test_ssc_snoop.py test_ssc_btsnooz.py test_ssc_live_report.py
     cargo test --manifest-path ssc-win-bridge/Cargo.toml
 
+## Personal Linux workstation and four-investigation follow-up
+
+The project was rebuilt and tested on a personal Zorin OS 18.1 workstation. See [workstation setup](docs/personal-linux-workstation.md) for the portable Ghidra/JDK installation, Samsung library hashes, Android ADB access, and limitations of the Windows-only BTstack transmitter. Run `bash scripts/check-workstation.sh` for local verification.
+
+The [four targeted investigations](docs/four-investigations-2026-11-03.md) trace bitrate-table consumers, internal mode flags, frame-size arithmetic, and frequency-band allocation. Supporting tools include `ssc_rate_frame_analysis.py`, `TraceSscControlXrefs.java`, and `TraceSscHeadroom.java`. The Ghidra scripts generate **private local** results; decompiled Samsung code is not redistributed.
+
 ## What's left
 
 1. Obtain an actual HCI AVDTP exchange to settle the vendor codec ID and peer configuration.

@@ -85,25 +85,36 @@ def recv_exact(sock: socket.socket, n: int) -> bytes:
 
 def open_backend(host: str, port: int, *, rate: int, depth: int,
                  bitrate: int, samples: int) -> socket.socket:
-    end = time.monotonic() + 10
+    deadline = time.monotonic() + 10
+    # ADB can accept the host-side TCP connection before the Android process
+    # reaches listen(). In that case the forward immediately returns EOF.
+    # Retry the complete handshake, not just connect(), during startup.
     while True:
+        sock = None
         try:
-            sock = socket.create_connection((host, port), timeout=3)
-            break
-        except OSError:
-            if time.monotonic() >= end:
-                raise
+            sock = socket.create_connection((host, port), timeout=2)
+            sock.settimeout(2)
+            sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+            sock.sendall(struct.pack("<4s6I", b"SSC1", rate, 2, depth, bitrate, samples, 1))
+            magic, status, ctx_size = struct.unpack("<4sii", recv_exact(sock, 12))
+            if magic != b"SSCR" or status != 0:
+                raise RuntimeError(
+                    f"SSC backend rejected configuration: {magic!r}, "
+                    f"status={status}, context={ctx_size}"
+                )
+            sock.settimeout(30)
+            print(f"SSC encoder ready: context={ctx_size} bytes", file=sys.stderr)
+            return sock
+        except OSError as exc:
+            if sock is not None:
+                sock.close()
+            if time.monotonic() >= deadline:
+                raise ConnectionError("SSC backend handshake unavailable after 10 seconds") from exc
             time.sleep(0.2)
-    sock.settimeout(30)
-    sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
-    sock.sendall(struct.pack("<4s6I", b"SSC1", rate, 2, depth, bitrate, samples, 1))
-    magic, status, ctx_size = struct.unpack("<4sii", recv_exact(sock, 12))
-    if magic != b"SSCR" or status != 0:
-        sock.close()
-        raise RuntimeError(f"SSC backend rejected configuration: {magic!r}, "
-                           f"status={status}, context={ctx_size}")
-    print(f"SSC encoder ready: context={ctx_size} bytes", file=sys.stderr)
-    return sock
+        except Exception:
+            if sock is not None:
+                sock.close()
+            raise
 
 
 def signed_24(raw: bytes) -> int:

@@ -1,4 +1,4 @@
-﻿diff --git a/app/src/crates/bt-host/src/app.rs b/app/src/crates/bt-host/src/app.rs
+diff --git a/app/src/crates/bt-host/src/app.rs b/app/src/crates/bt-host/src/app.rs
 index f859489..c651d59 100644
 --- a/app/src/crates/bt-host/src/app.rs
 +++ b/app/src/crates/bt-host/src/app.rs
