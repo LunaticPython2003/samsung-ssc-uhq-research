@@ -1,4 +1,6 @@
 # SSC interoperability research closure and build handoff
+
+**2026-11-04 correction:** The conclusions below about E4/886-kbps receiver rejection were too categorical. The [instruction-level re-audit](r640-e4-reaudit-2026-11-04.md) established that E4 can pass initial validation and that the UHQ pre-parser's caller does not test its return value. An 800-byte queue presents a separate obstacle, but the DSP/alternative receive path is unverified. Read the newer audit before interpreting the older claims below.
 **Date:** 2026-11-03  
 **Scope:** Cross-project commit audits, Samsung software encoder, public Galaxy Buds4 Pro firmware, and first Linux/Windows implementation choice.  
 **Reproducible verifier:** `scripts/audit-r640-receiver.py`; private firmware file is not redistributed.
@@ -6,8 +8,8 @@
 ## Executive verdict
 
 1. **Above 886 kbit/s:** None of the examined open-source SSC projects documents a *verified, earbuds-decoded* compressed SSC mode above 886 kbit/s. Claims for 2,304 kbit/s are not supported by their demonstrated packet captures or by our examined software-encoder header cases. This is not a universal proof that future firmware/DSP/LE Audio cannot provide other modes.
-2. **886 kbit/s is real in the Samsung ARM64 software encoder:** header tag `E4`, `get_header_from_bitrate(886000)` returns `0xE4`, UHQ classification is positive, and the Fold7 encoder returns consistently sized **1000-byte frames** at 96 kHz/864 samples/channel. We previously transported 223 such frames across the Linux host's encoder-to-RTP **offline loopback** using a *hypothetical* MTU=1200, not Bluetooth. This is **not a supported Buds4 Pro UHQ playback mode on the inspected firmware**.
-3. **New receiver-side finding:** The actual Buds4 Pro SM-R640 firmware `R640XXU0AZD2` explicitly processes `E0`, `E3` and `E6` UHQ frames, not `E4`. Its initial validator has a generic **484-byte minimum** for `E4` and may pass a 1000-byte E4 frame, but the downstream UHQ pre-parser takes an early return for E4 without the E0/E3/E6 frame-handling calls. Therefore **886 kbit/s is an encoder mode, not a demonstrated receiver-decodable bitrate for this specific firmware**.
+2. **886 kbit/s is real in the Samsung ARM64 software encoder:** header tag `E4`, `get_header_from_bitrate(886000)` returns `0xE4`, UHQ classification is positive, and the Fold7 encoder returns consistently sized **1000-byte frames** at 96 kHz/864 samples/channel. We previously transported 223 such frames across the Linux host's encoder-to-RTP **offline loopback** using a *hypothetical* MTU=1200, not Bluetooth. This is **not a verified playable Buds4 Pro UHQ mode on the inspected firmware**.
+3. **New receiver-side finding:** The actual Buds4 Pro SM-R640 firmware `R640XXU0AZD2` explicitly processes `E0`, `E3` and `E6` UHQ frames, not `E4`. Its initial validator has a generic **484-byte minimum** for `E4` and may pass a 1000-byte E4 frame, but the downstream UHQ pre-parser takes an early return for E4 without the E0/E3/E6 frame-handling calls. Therefore **886 kbit/s is encoder-confirmed but receiver playback remains unverified**. The newer audit also found a separate 800-byte receiver queue limit; the pre-parser's early return alone does not prove a global drop.
 4. **584 kbit/s is the strongest first build target**: E3, 660-byte/9-ms frame, explicit 660-byte Buds4 Pro validator case and normal downstream processing, matches Fold7 UHQ2 adaptive table (584/584/291/152) and previous Samsung runtime observation. Other project authors report 584 kbit/s UHQ playback on Buds3 Pro.
 5. **A working Linux SSC system is no longer a blank-slate problem.** Multiple independent projects have substantial integration work. A standalone BlueZ A2DP source is the most portable first step on this machine; existing PipeWire code can inform later integration.
 
@@ -71,7 +73,7 @@ The archive publicly lists only this one SM-R640 firmware as of the research dat
 
 **UHQ packet-processing path:** file offsets `0x8AFD4..0x8B15C`. After checking sync byte `FF` and the `E0` header-family high nibble, it masks `frame[3] & 0x1F`. It **explicitly branches only on values 0, 3, and 6**, corresponding to E0, E3, and E6. For other values including `4` (E4), it returns early before the expected E0/E3/E6 frame-processing calls. The 886-kbps E4 marker is therefore **not a normally processed UHQ frame on this firmware**.
 
-This is stronger evidence than the prior Buds3 Pro decoder report and explains why a valid encoder-produced E4 payload would still not be playable on the inspected Buds4 Pro firmware.
+This establishes a missing E4 branch in one stage, but is **not sufficient to prove the complete decoder drops E4**. See the newer audit for the ignored return value and separate 800-byte SSC queue.
 
 **Reproducibility:** `python3 scripts/audit-r640-receiver.py` verifies the exact firmware hash, the Thumb instructions and all 23 TBB destinations, with synthetic/fixed-assertion tests in `test_ssc_r640_receiver.py`. It does not redistribute copyrighted firmware bytes or generate modified images. The three new tests pass.
 
@@ -116,7 +118,7 @@ Windows continuation: `salvetum/SSCOnWindows` is already a near-complete indepen
 |---|---|---|
 | Is 886 kbit/s an actual named Samsung encoder mode? | **YES**, E4/1000 bytes at 96 kHz | High: local runtime + Ghidra + external projects |
 | Is 886 kbit/s selected by Fold7's normal UHQ2 adaptive sender? | **NO** in inspected sender path | High: rate-control table |
-| Does Buds4 Pro firmware R640XXU0AZD2 process E4 as UHQ? | **NO**: no E4 branch; early return | High: direct Thumb branch reconstruction |
+| Does Buds4 Pro firmware R640XXU0AZD2 decode E4 audio? | **Unverified**: initial validator accepts long E4; pre-parser skips it and queue caps at 800B | High for observed branches, unknown for DSP/alternate transport |
 | Is 886 kbit/s proven playable on Buds4 Pro? | **NO** | High that no proof exists; not a universal future-firmware exclusion |
 | Is there confirmed playable SSC above 886 kbit/s? | **NO verified report found** | Moderate, bounded to examined public commits/binaries |
 | Does the 2.304-Mbps marketing figure denote measured compressed Bluetooth bitrate? | **Unverified** | High that cited claims lack provided packet evidence |

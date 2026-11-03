@@ -99,16 +99,32 @@ def inspect(data: bytes) -> dict:
                 f"Unexpected firmware decoder branch for {code:#x}: "
                 f"{destination[code]:#x} vs {expected:#x}"
             )
-    # Unknown e-class IDs including E4 go through the generic 484-byte
-    # minimum check in the preliminary validator. Then the UHQ pre-parser's
-    # E0/E3/E6 equality branch skips further processing for E4.
+    # The initial validator's default branch can return SUCCESS for a
+    # sufficiently long E4 frame. The pre-parser's own caller ignores r0.
+    # Separately, one receiver SSC queue caps incoming payload to 800B.
+    # This is evidence against intact single-packet E4 transport in that
+    # path, NOT a comprehensive claim about an independent DSP decoder.
+    receiver_signatures = (
+        (0x17BBCE, "0ff701fa2e78"), # BL preparse; LDRB, no test of return
+        (0x8DE5A, "9246"),         # MOV r10, r2: incoming length
+        (0x8DEB4, "baf5487f00f2ac80"), # CMP r10, 800; BHI clamp
+        (0x8E014, "4ff4487253461b4944209246"), # MOV r2,800; MOV r10,r2
+        (0x8DED0, "02995246"),     # LDR r1 source; MOV r2,r10 copy length
+        (0x8D9BC, "4ff4f2739a4208d3012008bd"), # min484; return 1
+    )
+    for offset, hex_bytes in receiver_signatures:
+        expected = bytes.fromhex(hex_bytes)
+        if data[offset:offset+len(expected)] != expected:
+            raise ValueError(f"Receiver dispatch/queue signature changed at {offset:#x}")
+
     modes = []
     for code in range(7):
         modes.append({
             "info_byte": f"0x{0xE0+code:02x}",
             "minimum_accepted_bytes_in_initial_validator": CASE_MINIMUM.get(code, 484),
             "validator_dispatch_file_offset": f"0x{destination[code]:x}",
-            "accepted_by_uhq_preparser": code in UHQ_PROCESSED_LOW5,
+            "handled_by_uhq_sequence_preparser": code in UHQ_PROCESSED_LOW5,
+            "accepted_by_uhq_preparser": code in UHQ_PROCESSED_LOW5,  # legacy key; NOT full decoder acceptance
         })
     return {
         "device": "Samsung Galaxy Buds4 Pro (SM-R640)",
@@ -123,10 +139,19 @@ def inspect(data: bytes) -> dict:
             "read_only": True,
         },
         "modes": modes,
+        "preparser_caller_tests_return_value": False,
+        "observed_ssc_packet_queue_max_bytes": 800,
+        "e4_frame_bytes": 1000,
+        "e4_passes_generic_initial_validator": True,
+        "e4_can_fit_unfragmented_in_observed_queue": False,
+        "dsp_e4_acceptance": "not_verified",
         "conclusion": (
-            "E4/886kbps is not an explicitly processed UHQ frame type in "
-            "this firmware. E0/E3/E6 are explicitly dispatched. No inference "
-            "is made for newer earbud firmware."
+            "E4/886kbps passes an initial 484-byte minimum but skips an "
+            "E0/E3/E6-specific UHQ sequence pre-parser; its caller ignores "
+            "the return value. A separate SSC packet queue caps copied "
+            "payload to 800 bytes, too short for a 1000-byte E4 frame. "
+            "No complete E4 decode or fragmentation path is verified; "
+            "do not claim that all receivers or firmware reject it."
         ),
     }
 

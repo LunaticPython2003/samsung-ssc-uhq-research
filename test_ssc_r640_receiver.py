@@ -38,7 +38,12 @@ class ReceiverAuditTests(unittest.TestCase):
         self.assertEqual(modes["0xe3"]["minimum_accepted_bytes_in_initial_validator"],660)
         self.assertEqual(modes["0xe6"]["minimum_accepted_bytes_in_initial_validator"],174)
         self.assertEqual(modes["0xe4"]["minimum_accepted_bytes_in_initial_validator"],484)
-        self.assertFalse(modes["0xe4"]["accepted_by_uhq_preparser"])
+        self.assertFalse(modes["0xe4"]["handled_by_uhq_sequence_preparser"])
+        self.assertTrue(self.audit["e4_passes_generic_initial_validator"])
+        self.assertFalse(self.audit["preparser_caller_tests_return_value"])
+        self.assertEqual(self.audit["observed_ssc_packet_queue_max_bytes"], 800)
+        self.assertFalse(self.audit["e4_can_fit_unfragmented_in_observed_queue"])
+        self.assertEqual(self.audit["dsp_e4_acceptance"], "not_verified")
 
     def test_rejects_unknown_firmware(self):
         with self.assertRaises(ValueError):
