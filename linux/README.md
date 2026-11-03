@@ -33,7 +33,7 @@ python3 linux/ssc_linux_bridge.py --wav tools/test.wav --bitrate 886000 --batch-
 python3 linux/ssc_linux_bridge.py --wav tools/test.wav --bitrate 886000 --batch-frames 8 --mtu 1200
 ```
 
-The first command should report oversized frames, because 1000-byte SSC frame + 12-byte fixed RTP header exceeds an assumed RTP-inclusive MTU of 1005 by **at least seven bytes**. The second **only** tests a hypothetical 1200-byte MTU in loopback. The actual Buds MTU/fragmentation convention is not yet verified.
+The first command should report oversized frames, because 1000-byte SSC frame + 12-byte fixed RTP header exceeds an assumed RTP-inclusive MTU of 1005 by **at least seven bytes**. The second **only** tests a hypothetical 1200-byte MTU in loopback. The actual Buds MTU/fragmentation convention is not yet verified. **New receiver-side finding:** the inspected Buds4 Pro firmware `R640XXU0AZD2` does not dispatch `E4` (886-kbps) frames in its UHQ decoder pre-parser. A larger MTU by itself would NOT make 886-kbps audio playable on this firmware. See [the final decoder audit](../docs/ssc-cross-project-r640-verification-and-build-handoff-2026-11-03.md).
 
 High-rate requests above the allowlisted 886000 bps are deliberately **rejected by the Android RPC server**: isolated tests at 1.2–2.4Mbps wrote beyond the length returned by the encoder, and their header marker was unrecognized.
 

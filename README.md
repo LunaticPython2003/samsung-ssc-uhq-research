@@ -95,6 +95,14 @@ The [peak-bitrate audit](docs/ssc-peak-bitrate-audit-2026-11-03.md) compares Sam
 
 The audit is reproducible using the source-only probe `ssc_bitrate_catalog.c` and `bash scripts/check-bitrate-catalog.sh`. Only private local output is saved under `tools/`, and the Samsung binaries are excluded from Git.
 
+## Verified Buds4 Pro receiver parser and cross-project audit
+
+The [final research handoff](docs/ssc-cross-project-r640-verification-and-build-handoff-2026-11-03.md) compares SSCOnWindows, openssc, SSC-Pipewire, ssc-uhq, and other projects against **the actual SM-R640 Galaxy Buds4 Pro firmware**. The April 2026 receiver image `R640XXU0AZD2` explicitly processes **E6/152 kbps, E0/291 kbps and E3/584 kbps** UHQ frames; its UHQ pre-parser does **not** handle **E4/886 kbps**. This resolves the distinction between a valid Samsung **encoder** bitrate and a receiver-supported **Bluetooth** bitrate for that firmware.
+
+Reproduce the read-only analysis against your own locally downloaded firmware with `python3 scripts/audit-r640-receiver.py`. The original firmware is proprietary and gitignored; only the verification script, tests, branch mapping and analysis are published. No firmware changes or device flashing are required. Later R640 firmware could differ.
+
+**Implementation target:** Start at 584 kbps/96 kHz using a standalone BlueZ A2DP source and Samsung's working phone-hosted encoder. Only after proving audio playback should we add PipeWire/WirePlumber integration. Your installed PipeWire 1.0.5 and WirePlumber 0.4.17 are older than the private-plugin ABI used by the reviewed PipeWire 1.6.x SSC projects.
+
 ## What's left
 
 1. Obtain an actual HCI AVDTP exchange to settle the vendor codec ID and peer configuration.
