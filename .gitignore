@@ -1,0 +1,50 @@
+# Samsung-owned / proprietary device binaries
+vendor-local/
+*.so
+*.apk
+*.img
+*.bin
+*.elf
+*.a
+*.o
+
+# HCI snoops, dumps and sensitive device diagnostics
+*.cfa
+*btsnoop*
+*bugreport*.zip
+dumpstate*
+*.pcap
+*.pcapng
+*.log
+
+# Offline audio and generated SSC research containers
+*.wav
+*.flac
+*.raw
+*.sscf
+*.partial
+
+# Build and reverse-engineering workspaces
+tools/
+third-party-a2dpwb/
+ghidra-projects*/
+*.gpr
+*.gpr~
+*.rep
+*.gpd
+*.lock
+target/
+__pycache__/
+.pytest_cache/
+*.pyc
+*.pyo
+.venv/
+venv/
+.env
+.env.*
+
+# Native local machines
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
