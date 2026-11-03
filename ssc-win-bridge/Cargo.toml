@@ -1,0 +1,13 @@
+[package]
+name = "ssc-remote-encoder"
+version = "0.1.0"
+edition = "2024"
+license = "GPL-3.0-only"
+publish = false
+description = "Experimental Windows-side RPC client for an on-phone SSC encoder; does not implement A2DP"
+
+[lib]
+name = "ssc_remote_encoder"
+path = "src/lib.rs"
+
+[dependencies]
