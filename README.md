@@ -103,6 +103,10 @@ Reproduce the read-only analysis against your own locally downloaded firmware wi
 
 **Implementation target:** Start at 584 kbps/96 kHz using a standalone BlueZ A2DP source and Samsung's working phone-hosted encoder. Only after proving audio playback should we add PipeWire/WirePlumber integration. Your installed PipeWire 1.0.5 and WirePlumber 0.4.17 are older than the private-plugin ABI used by the reviewed PipeWire 1.6.x SSC projects.
 
+## HiFi mode flags and Classic Bluetooth throughput
+
+A [direct Fold7 encoder comparison](docs/ssc-hifi-flags-and-throughput-2026-11-04.md) confirms that Samsung encoder creation-mode values **24, 32 and 34** produce **identical eight-frame binary output** for the tested synthetic PCM and requested rates, including E3/584kbps and E4/886kbps at 96kHz. This does **not** prove that the modes are always identical, and it does **not** establish earbuds decoding of E4. The official Bluetooth Core maximum asymmetric 3-DH5 user throughput is **2178.1kbps**, so a continuous **2304kbps** compressed stream exceeds the limit of Classic BR/EDR A2DP; **886kbps itself is physically feasible**, pending the negotiated MTU, receiver queue and decode path.
+
 ## What's left
 
 1. Obtain an actual HCI AVDTP exchange to settle the vendor codec ID and peer configuration.
