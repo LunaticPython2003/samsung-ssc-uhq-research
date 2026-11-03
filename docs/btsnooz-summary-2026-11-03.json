@@ -1,0 +1,20 @@
+{
+  "format": "in-memory Samsung btsnooz to HCI btsnoop to AVDTP",
+  "source_bytes_base64_decoded": 49046,
+  "btsnooz_version": 2,
+  "ring_packets": 6990,
+  "uncompressed_bytes": 209999,
+  "hci_packet_type_counts": {
+    "in_hci_4": 4389,
+    "out_hci_1": 2601
+  },
+  "records_scanned": 6990,
+  "unreassembled_acl_fragments": 0,
+  "ssc_avdtp_candidates": [],
+  "limits": [
+    "The ring buffer may not include the last device reconnection.",
+    "Default Android snooz buffers may filter or truncate ACL packets.",
+    "No AVDTP match does not mean a device lacks SSC.",
+    "Codec identifier alone does not prove successful playback."
+  ]
+}

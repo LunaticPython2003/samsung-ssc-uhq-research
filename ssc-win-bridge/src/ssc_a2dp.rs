@@ -30,6 +30,34 @@ pub const SAMPLING_32K: u8 = 0x40;
 pub const SAMPLING_96K: u8 = 0x80;
 pub const SAMPLING_MASK: u8 = 0xF0;
 pub const FEATURE_MASK: u8 = 0x0F;
+/// From A2DP_VendorGetSscType: bit 1 selects UHQ2 (mode code 0x400).
+pub const FEATURE_UHQ2: u8 = 0x02;
+/// From A2DP_VendorGetTrackBitrateLimitationSsc: bitrate limitation is
+/// true when this bit is CLEAR (inverse/negative-polarity flag).
+pub const FEATURE_UNRESTRICTED_BITRATE: u8 = 0x08;
+/// Bit 2 influences the legacy mode code, without proving its feature name.
+pub const FEATURE_LEGACY_MODE_SELECT: u8 = 0x04;
+
+/// Recovered lookup tables from Samsung's SscBitrateByBusyLevel function.
+/// The index is a busy/quality level clamped to 3.
+pub const UHQ2_BITRATES: [u32; 4] = [584000, 584000, 291000, 152000];
+pub const SSC_96K_LEGACY_BITRATES: [u32; 4] = [328000, 328000, 328000, 328000];
+pub const SSC_STANDARD_BITRATES: [u32; 4] = [192000, 192000, 128000, 88000];
+pub const SSC_LIMITED_BITRATES: [u32; 4] = [128000, 128000, 128000, 88000];
+
+/// The AIDL SscBitrateByBusyLevel selection, based on the inspected Galaxy
+/// Z Fold7 Bluetooth stack. `rate_limited` applies to standard modes; UHQ2
+/// and 0x200 bypass this flag in the decompiled branch. It returns a target
+/// bitrate, not measured on-air RF throughput.
+pub fn bitrate_by_busy_level(mode: u16, level: u16, rate_limited: bool) -> u32 {
+    let index = usize::from(level.min(3));
+    match mode {
+        0x400 => UHQ2_BITRATES[index],
+        0x200 => SSC_96K_LEGACY_BITRATES[index],
+        _ if rate_limited => SSC_LIMITED_BITRATES[index],
+        _ => SSC_STANDARD_BITRATES[index],
+    }
+}
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum SscCodecError {
@@ -73,6 +101,28 @@ impl SscInfo {
     }
     pub fn features(self) -> u8 {
         self.flags & FEATURE_MASK
+    }
+    /// True when the parsed SSC field selects Samsung's UHQ2 mode (0x400).
+    pub fn is_uhq2(self) -> bool {
+        self.features() & FEATURE_UHQ2 != 0
+    }
+    /// Returns the boolean used by Samsung's bitrate limitation getter.
+    pub fn bitrate_limited(self) -> bool {
+        self.features() & FEATURE_UNRESTRICTED_BITRATE == 0
+    }
+    /// Reproduces the A2DP_VendorGetSscType branch ordering. Only valid
+    /// after selecting a single sample rate, not on multi-rate capabilities.
+    pub fn stack_mode_code(self) -> Result<u16, SscCodecError> {
+        let sample_rate = self.require_single_rate()?;
+        Ok(if self.is_uhq2() {
+            0x400
+        } else if sample_rate == 96000 {
+            0x200
+        } else if self.features() & FEATURE_LEGACY_MODE_SELECT != 0 {
+            0x100
+        } else {
+            0x080
+        })
     }
     /// Return the vendor codec information normally carried by BTstack:
     /// 32-bit vendor LE, 16-bit codec LE, one byte of SSC flags.
@@ -158,6 +208,35 @@ impl SscInfo {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn bitrate_tables_match_live_level_change() {
+        assert_eq!(bitrate_by_busy_level(0x400, 2, false), 291000);
+        assert_eq!(bitrate_by_busy_level(0x400, 1, false), 584000);
+        assert_eq!(bitrate_by_busy_level(0x400, 3, false), 152000);
+        assert_eq!(bitrate_by_busy_level(0x400, 100, true), 152000);
+        for level in 0..=3 {
+            assert_eq!(bitrate_by_busy_level(0x200, level, false), 328000);
+        }
+        assert_eq!(bitrate_by_busy_level(0x100, 0, false), 192000);
+        assert_eq!(bitrate_by_busy_level(0x100, 0, true), 128000);
+        assert_eq!(bitrate_by_busy_level(0x100, 3, true), 88000);
+    }
+
+    #[test]
+    fn parsed_mode_and_bitrate_flags_match_samsung_stack() {
+        // 0x8A is a minimal *candidate* for the observed UHQ2/96k/
+        // unrestricted mode; it is NOT a recorded on-air configuration.
+        let candidate = SscInfo { flags: 0x8A };
+        assert_eq!(candidate.require_single_rate().unwrap(), 96000);
+        assert_eq!(candidate.stack_mode_code().unwrap(), 0x400);
+        assert!(candidate.is_uhq2());
+        assert!(!candidate.bitrate_limited());
+        assert_eq!(SscInfo { flags: 0x80 }.stack_mode_code().unwrap(), 0x200);
+        assert_eq!(SscInfo { flags: 0x24 }.stack_mode_code().unwrap(), 0x100);
+        assert_eq!(SscInfo { flags: 0x20 }.stack_mode_code().unwrap(), 0x080);
+        assert!(SscInfo { flags: 0xF2 }.stack_mode_code().is_err());
+    }
+
     #[test]
     fn parse_minimal_codec_info() {
         let info = [0x75, 0, 0, 0, 0x03, 0x01, 0x30];

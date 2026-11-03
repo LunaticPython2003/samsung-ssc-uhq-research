@@ -62,6 +62,17 @@ python ssc_live_report.py --adb -o .\ssc_live_profile.json
 
 The output contains only selected codec-related fields. Raw HCI snoop/bugreports may contain device addresses and unrelated data and should not be published.
 
+## Recent progress: bitrate tables and Windows discovery
+
+The [new research report](docs/research-update-2026-11-03.md) documents recovered UHQ2 mode flags, Samsung's four-level bitrate tables, and observed encoder-frame counter patterns. The [btsnooz inspector](ssc_btsnooz.py) can decode the Android Bluetooth service ring in memory, without retaining raw private traffic. The analyzed ring had zero ACL packets, so the negotiated AVDTP codec configuration is still unknown.
+
+The [A2DP Windows Bridge patch](patches/a2dpwb-ssc-passive-discovery.patch) recognizes Samsung endpoints during discovery, but does not enable radio transmission or modify Bluetooth drivers. The patched codec suite passed 28 tests, and the codec and Bluetooth host compiled.
+
+Run all available local tests:
+
+    python -m unittest -v test_ssc_rpc.py test_ssc_snoop.py test_ssc_btsnooz.py test_ssc_live_report.py
+    cargo test --manifest-path ssc-win-bridge/Cargo.toml
+
 ## What's left
 
 1. Obtain an actual HCI AVDTP exchange to settle the vendor codec ID and peer configuration.

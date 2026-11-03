@@ -34,7 +34,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         info.flags & 0xf0,
         info.rates()
     );
-    println!("Opaque feature bits: 0x{:x} (not decoded)", info.features());
+    println!("Feature bits: 0x{:x}", info.features());
+    println!("  UHQ2 flag: {}", info.is_uhq2());
+    println!("  bitrate limiter active: {}", info.bitrate_limited());
+    if let Ok(mode) = info.stack_mode_code() {
+        println!("  Samsung stack mode code: 0x{mode:03x}");
+    } else {
+        println!("  stack mode requires a single selected sample rate");
+    }
+    println!("  remaining low-bit meanings still unverified");
     println!("Software-encoder-compatible rates: {:?}", {
         info.rates()
             .into_iter()

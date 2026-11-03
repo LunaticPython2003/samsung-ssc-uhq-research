@@ -7,6 +7,7 @@
 //! Usage: run ssc_rpc_server via ADB forwarding, then call EncoderClient::connect.
 //! Designed to become the codec backend for the A2DP Windows Bridge project.
 
+pub mod frame;
 pub mod ssc_a2dp;
 pub mod transport;
 

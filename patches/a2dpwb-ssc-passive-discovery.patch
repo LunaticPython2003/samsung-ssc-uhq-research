@@ -1,0 +1,83 @@
+﻿diff --git a/app/src/crates/bt-host/src/app.rs b/app/src/crates/bt-host/src/app.rs
+index f859489..c651d59 100644
+--- a/app/src/crates/bt-host/src/app.rs
++++ b/app/src/crates/bt-host/src/app.rs
+@@ -840,6 +840,9 @@ impl HostApp {
+                     VendorCapability::Ignored(kind, why) => {
+                         tracing::info!("remote supports {kind} (SEID {seid}) - {why}, ignored")
+                     }
++                    VendorCapability::SamsungSscCandidate { codec_id, flags } => tracing::info!(
++                        "remote Samsung SSC candidate (SEID {seid}, codec 0x{codec_id:04X}, flags 0x{flags:02X}) - detected only; no verified A2DP packetizer"
++                    ),
+                     VendorCapability::AptxAdaptive => tracing::info!(
+                         "remote supports aptX Adaptive (SEID {seid}) - never selected (no open encoder); \
+                          classic aptX is used only if the remote lists it"
+diff --git a/app/src/crates/codec/src/caps.rs b/app/src/crates/codec/src/caps.rs
+index 18f284f..602efcf 100644
+--- a/app/src/crates/codec/src/caps.rs
++++ b/app/src/crates/codec/src/caps.rs
+@@ -10,6 +10,12 @@
+ use crate::CodecKind;
+ use crate::sbc::{self, ChannelMode};
+ 
++/// Samsung Scalable Codec IDs observed in two distinct stack code paths.
++/// Passive discovery only; neither ID is enabled for A2DP transmission.
++pub const SSC_VENDOR_ID: u32 = 0x0000_0075;
++pub const SSC_PARSER_CODEC_ID: u16 = 0x0103;
++pub const SSC_STATIC_CODEC_ID: u16 = 0x0E03;
++
+ pub const LDAC_VENDOR_ID: u32 = 0x0000_012D; // Sony
+ pub const LDAC_CODEC_ID: u16 = 0x00AA;
+ pub const APTXHD_VENDOR_ID: u32 = 0x0000_00D7; // Qualcomm
+@@ -342,6 +348,8 @@ pub struct RemoteCaps {
+     pub opus: Option<RemoteSep>,
+     pub opus05: Option<RemoteSep>,
+     pub faststream: Option<RemoteSep>,
++    /// Discovered Samsung endpoints: SEID, codec ID and SSC flags.
++    pub samsung_ssc_candidates: Vec<(u8, u16, u8)>,
+     /// FastStream sink (music) rates: 0x02 44.1k, 0x01 48k
+     pub faststream_rates: u8,
+     /// aptX family byte 6 of each (0 = not reported: assume 44.1k + 48k)
+@@ -378,6 +386,8 @@ pub enum VendorCapability {
+     /// do not encode)
+     Ignored(CodecKind, &'static str),
+     AptxAdaptive,
++    /// Recognized but intentionally not enabled as a Bluetooth codec.
++    SamsungSscCandidate { codec_id: u16, flags: u8 },
+     Unknown {
+         vendor_id: u32,
+         codec_id: u16,
+@@ -451,6 +461,14 @@ impl RemoteCaps {
+             return VendorCapability::TooShort;
+         };
+         let byte = |i: usize| info.get(i).copied().unwrap_or(0);
++        if vid == SSC_VENDOR_ID && matches!(cid, SSC_PARSER_CODEC_ID | SSC_STATIC_CODEC_ID) {
++            if info.len() < 7 { return VendorCapability::TooShort; }
++            let flags = info[6];
++            if !self.samsung_ssc_candidates.iter().any(|&(sep, id, _)| sep == seid && id == cid) {
++                self.samsung_ssc_candidates.push((seid, cid, flags));
++            }
++            return VendorCapability::SamsungSscCandidate { codec_id: cid, flags };
++        }
+         if vid == LDAC_VENDOR_ID && cid == LDAC_CODEC_ID {
+             self.ldac = Some(RemoteSep { seid });
+             return VendorCapability::Taken(CodecKind::Ldac);
+@@ -940,6 +958,18 @@ pub fn choose(
+ mod tests {
+     use super::*;
+ 
++    #[test]
++    fn samsung_ssc_is_detected_but_not_offered_for_playback() {
++        let mut caps = RemoteCaps::default();
++        let a = caps.add_vendor(9, &[0x75, 0, 0, 0, 0x03, 0x01, 0x82]);
++        assert_eq!(a, VendorCapability::SamsungSscCandidate { codec_id: 0x0103, flags: 0x82 });
++        let b = caps.add_vendor(10, &[0x75, 0, 0, 0, 0x03, 0x0E, 0xFC]);
++        assert_eq!(b, VendorCapability::SamsungSscCandidate { codec_id: 0x0e03, flags: 0xfc });
++        assert_eq!(caps.samsung_ssc_candidates, vec![(9,0x0103,0x82), (10,0x0e03,0xfc)]);
++        assert_eq!(caps.best(), None); // no unverified radio playback
++        assert_eq!(caps.add_vendor(11, &[0x75,0,0,0,3,1]), VendorCapability::TooShort);
++    }
++
+     #[test]
+     fn auto_prefers_ldac_then_aptx_family() {
+         let mut caps = RemoteCaps::default();

@@ -17,6 +17,8 @@ Do not publish full captures. This script only reports codec negotiation.
 """
 from __future__ import annotations
 import argparse
+import contextlib
+import io
 import json
 import struct
 from dataclasses import asdict, dataclass
@@ -114,13 +116,14 @@ def decode_avdtp(payload: bytes, record_number: int,
     return candidates
 
 
-def scan_btsnoop(path: Path) -> tuple[list[Candidate], int, int]:
-    """Return Samsung codec discovery records and total/fragmented record counts."""
+def scan_btsnoop(path: Path | bytes) -> tuple[list[Candidate], int, int]:
+    """Scan a file or in-memory HCI btsnoop bytes. Never saves packet contents."""
     result: list[Candidate] = []
     pending: dict[tuple[int, bool], tuple[int, int, bytearray]] = {}
     count = 0
     incomplete = 0
-    with path.open("rb") as src:
+    stream = io.BytesIO(path) if isinstance(path, bytes) else path.open("rb")
+    with stream as src:
         header = src.read(BTSNOOP_HEADER_BYTES)
         if len(header) != BTSNOOP_HEADER_BYTES or header[:8] != BTSNOOP_MAGIC:
             raise ValueError("not a btsnoop file")
