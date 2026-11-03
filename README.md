@@ -107,6 +107,12 @@ Reproduce the read-only analysis against your own locally downloaded firmware wi
 
 A [direct Fold7 encoder comparison](docs/ssc-hifi-flags-and-throughput-2026-11-04.md) confirms that Samsung encoder creation-mode values **24, 32 and 34** produce **identical eight-frame binary output** for the tested synthetic PCM and requested rates, including E3/584kbps and E4/886kbps at 96kHz. This does **not** prove that the modes are always identical, and it does **not** establish earbuds decoding of E4. The official Bluetooth Core maximum asymmetric 3-DH5 user throughput is **2178.1kbps**, so a continuous **2304kbps** compressed stream exceeds the limit of Classic BR/EDR A2DP; **886kbps itself is physically feasible**, pending the negotiated MTU, receiver queue and decode path.
 
+## Reproducible seven-rate sweep and SSC offload audit
+
+The [November 4 2026 full sweep](docs/ssc-seven-rate-sweep-offload-2026-11-04.md) tested **152/250/291/308/442/584/886 kbps** at **96 kHz**, with eight consecutive frames for each of encoder creation mode values **24/32/34**. All 21 combinations produced consistent frame markers and sizes; the complete outputs were byte-identical across the three mode values for the tested synthetic signal. Run `python3 scripts/sweep_ssc_uhq_modes.py` to repeat on a rooted Fold7 with Termux Clang. Recovered frame markers and results alone do **not** prove receiver playback.
+
+The same investigation decompiled **`A2dpSscToHalConfig`** on the Fold7 and verified Samsung's AIDL SSC offload conversion interface. Neither routine establishes a different high-rate encoder. A [read-only BlueZ transport inspector](linux/ssc_transport_inspect.py) can report the codec and configuration once connected from the real Linux desktop; the negotiated **write MTU** requires `MediaTransport1.Acquire()` by the owning transport process.
+
 ## What's left
 
 1. Obtain an actual HCI AVDTP exchange to settle the vendor codec ID and peer configuration.

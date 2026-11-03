@@ -71,7 +71,17 @@ This is a **two-stage** capture-to-WAV-and-encode diagnostic, not a live PipeWir
 
 For a native PipeWire SSC profile in the future, we would need to implement its BlueZ5 codec interface (SPA plugin) and wire it into WirePlumber policy, or manage a standalone BlueZ transport independently. Merely adding `ssc` to `bluez5.codecs` will not work.
 
-## 4. Remaining work
+## 4. Read-only negotiated transport inspection
+
+With the Buds4 Pro connected from your **normal desktop session**, run:
+
+```bash
+python3 linux/ssc_transport_inspect.py
+```
+
+This prints BlueZ media transport codec, configuration and state without any Bluetooth device addresses. It does **not** acquire the transport or report an invented MTU. BlueZ only provides the actual **write MTU** in `MediaTransport1.Acquire()` to the process owning the source transport. To capture L2CAP/AVDTP negotiation, run an authorized local `btmon` trace during connection and review it privately (Bluetooth address metadata is sensitive). CatDesk's sandbox cannot perform this live session because host D-Bus is inaccessible and HCI monitoring is not permitted.
+
+## 5. Remaining work
 
 - Capture actual AVDTP capabilities and selected SSC vendor codec ID (candidate 0x0103 vs 0x0e03)
 - Recover the SSC-specific media header/fragmentation and verify RTP clocking

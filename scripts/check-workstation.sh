@@ -8,7 +8,7 @@ CARGO="$HOME/.cargo/bin/cargo"
 echo "[1/5] Git status:"
 git status --short --branch
 echo "[2/5] Python tests:"
-python3 -m unittest -q test_ssc_rpc.py test_ssc_snoop.py test_ssc_btsnooz.py test_ssc_live_report.py test_ssc_rate_frame_analysis.py test_ssc_linux_bridge.py test_ssc_r640_receiver.py
+python3 -m unittest -q test_ssc_rpc.py test_ssc_snoop.py test_ssc_btsnooz.py test_ssc_live_report.py test_ssc_rate_frame_analysis.py test_ssc_linux_bridge.py test_ssc_r640_receiver.py test_ssc_uhq_mode_sweep.py
 echo "[3/5] Rust tests:"
 "$CARGO" test --offline --manifest-path ssc-win-bridge/Cargo.toml --quiet
 echo "[4/5] Private binaries / portable Ghidra:"
