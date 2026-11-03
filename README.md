@@ -79,6 +79,16 @@ The project was rebuilt and tested on a personal Zorin OS 18.1 workstation. See 
 
 The [four targeted investigations](docs/four-investigations-2026-11-03.md) trace bitrate-table consumers, internal mode flags, frame-size arithmetic, and frequency-band allocation. Supporting tools include `ssc_rate_frame_analysis.py`, `TraceSscControlXrefs.java`, and `TraceSscHeadroom.java`. The Ghidra scripts generate **private local** results; decompiled Samsung code is not redistributed.
 
+## Linux bridge and the 886 kbps mode
+
+The [Linux SSC bridge prototype](linux/README.md) now drives the actual Samsung encoder through ADB, checks the returned SSC frame marker, builds an **incomplete/experimental** RTP packet and validates it across a local Linux packet-preserving socket. It does not transmit over Bluetooth.
+
+[High-bitrate investigation](docs/linux-bridge-high-bitrate-2026-11-03.md) confirmed that **886 kbps** is recognized by the original encoder and has a distinct UHQ frame marker, but its 1000-byte frame requires at least 1012 bytes with a fixed RTP header. The previous Buds4 Pro HAL reported an MTU of 1005 bytes, so sending 886 kbps would require a larger negotiated transport MTU or a verified fragmentation scheme. Samsung's analyzed normal UHQ2 bitrate table still peaks at **584 kbps**. Requests for 1.2–2.4 Mbps returned inconsistent output sizes and are not validated modes.
+
+BlueZ offers an endpoint/transport interface for future use, and a [read-only probe](linux/ssc_bluez_probe.py) plus optional passive endpoint are supplied. CatDesk's restricted workspace cannot access the desktop's BlueZ system bus, so **no actual earbuds stream has been attempted**. PipeWire integration also remains incomplete.
+
+Run the new offline tests with `python3 -m unittest -q test_ssc_linux_bridge.py`.
+
 ## What's left
 
 1. Obtain an actual HCI AVDTP exchange to settle the vendor codec ID and peer configuration.
