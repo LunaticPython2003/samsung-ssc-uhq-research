@@ -1,0 +1,302 @@
+{
+  "schema_version": 1,
+  "source": "local Android logcat, anonymized; only SSC-related fields",
+  "selected_configuration": {
+    "timestamp": "11-03 17:12:06.947",
+    "codec": "SSC",
+    "bitrate_bps": 584000,
+    "peer_mtu_bytes": 1005,
+    "scmst": false,
+    "sample_rate_hz": 96000,
+    "channel_mode": "STEREO",
+    "bit_depth_field": 34
+  },
+  "configuration_events": [
+    {
+      "timestamp": "11-03 17:11:36.247",
+      "codec": "SSC",
+      "bitrate_bps": 584000,
+      "peer_mtu_bytes": 1005,
+      "scmst": false,
+      "sample_rate_hz": 96000,
+      "channel_mode": "STEREO",
+      "bit_depth_field": 34
+    },
+    {
+      "timestamp": "11-03 17:12:06.947",
+      "codec": "SSC",
+      "bitrate_bps": 584000,
+      "peer_mtu_bytes": 1005,
+      "scmst": false,
+      "sample_rate_hz": 96000,
+      "channel_mode": "STEREO",
+      "bit_depth_field": 34
+    }
+  ],
+  "offload_reported_enabled": true,
+  "encoder_updates": [
+    {
+      "timestamp": "11-03 17:11:36.246",
+      "rate_hz": 96000,
+      "bit_depth_field": 34,
+      "channels": 2,
+      "bitrate_limited": false,
+      "is_uhq2": true
+    },
+    {
+      "timestamp": "11-03 17:12:06.946",
+      "rate_hz": 96000,
+      "bit_depth_field": 34,
+      "channels": 2,
+      "bitrate_limited": false,
+      "is_uhq2": true
+    }
+  ],
+  "uhq_mode_reports": [
+    {
+      "timestamp": "11-03 17:11:36.246",
+      "reported_flags": "0x20",
+      "uhq_version": "0x2"
+    },
+    {
+      "timestamp": "11-03 17:12:06.946",
+      "reported_flags": "0x20",
+      "uhq_version": "0x2"
+    }
+  ],
+  "bitrate_transitions": [
+    {
+      "timestamp": "11-03 17:11:36.823",
+      "from_bps": 0,
+      "to_bps": 291000
+    },
+    {
+      "timestamp": "11-03 17:11:36.873",
+      "from_bps": 291000,
+      "to_bps": 584000
+    },
+    {
+      "timestamp": "11-03 17:12:07.234",
+      "from_bps": 0,
+      "to_bps": 584000
+    }
+  ],
+  "frame_event_count": 23,
+  "frame_events": [
+    {
+      "timestamp": "11-03 17:11:36.823",
+      "frames_reported": 1,
+      "rate_hz": 96000,
+      "level": 2,
+      "limited": false,
+      "monitor": false,
+      "scmst": false
+    },
+    {
+      "timestamp": "11-03 17:11:51.853",
+      "frames_reported": 1,
+      "rate_hz": 96000,
+      "level": 1,
+      "limited": false,
+      "monitor": false,
+      "scmst": false
+    },
+    {
+      "timestamp": "11-03 17:12:07.234",
+      "frames_reported": 1,
+      "rate_hz": 96000,
+      "level": 1,
+      "limited": false,
+      "monitor": false,
+      "scmst": false
+    },
+    {
+      "timestamp": "11-03 17:12:22.244",
+      "frames_reported": 1,
+      "rate_hz": 96000,
+      "level": 1,
+      "limited": false,
+      "monitor": false,
+      "scmst": false
+    },
+    {
+      "timestamp": "11-03 17:12:37.254",
+      "frames_reported": 1,
+      "rate_hz": 96000,
+      "level": 1,
+      "limited": false,
+      "monitor": false,
+      "scmst": false
+    },
+    {
+      "timestamp": "11-03 17:12:52.264",
+      "frames_reported": 1,
+      "rate_hz": 96000,
+      "level": 1,
+      "limited": false,
+      "monitor": false,
+      "scmst": false
+    },
+    {
+      "timestamp": "11-03 17:13:07.274",
+      "frames_reported": 1,
+      "rate_hz": 96000,
+      "level": 1,
+      "limited": false,
+      "monitor": false,
+      "scmst": false
+    },
+    {
+      "timestamp": "11-03 17:13:22.284",
+      "frames_reported": 1,
+      "rate_hz": 96000,
+      "level": 1,
+      "limited": false,
+      "monitor": false,
+      "scmst": false
+    },
+    {
+      "timestamp": "11-03 17:13:37.294",
+      "frames_reported": 1,
+      "rate_hz": 96000,
+      "level": 1,
+      "limited": false,
+      "monitor": false,
+      "scmst": false
+    },
+    {
+      "timestamp": "11-03 17:13:52.304",
+      "frames_reported": 1,
+      "rate_hz": 96000,
+      "level": 1,
+      "limited": false,
+      "monitor": false,
+      "scmst": false
+    },
+    {
+      "timestamp": "11-03 17:14:07.314",
+      "frames_reported": 1,
+      "rate_hz": 96000,
+      "level": 1,
+      "limited": false,
+      "monitor": false,
+      "scmst": false
+    },
+    {
+      "timestamp": "11-03 17:14:22.324",
+      "frames_reported": 2,
+      "rate_hz": 96000,
+      "level": 1,
+      "limited": false,
+      "monitor": false,
+      "scmst": false
+    },
+    {
+      "timestamp": "11-03 17:14:37.334",
+      "frames_reported": 1,
+      "rate_hz": 96000,
+      "level": 1,
+      "limited": false,
+      "monitor": false,
+      "scmst": false
+    },
+    {
+      "timestamp": "11-03 17:14:52.344",
+      "frames_reported": 1,
+      "rate_hz": 96000,
+      "level": 1,
+      "limited": false,
+      "monitor": false,
+      "scmst": false
+    },
+    {
+      "timestamp": "11-03 17:15:07.354",
+      "frames_reported": 1,
+      "rate_hz": 96000,
+      "level": 1,
+      "limited": false,
+      "monitor": false,
+      "scmst": false
+    },
+    {
+      "timestamp": "11-03 17:15:22.364",
+      "frames_reported": 1,
+      "rate_hz": 96000,
+      "level": 1,
+      "limited": false,
+      "monitor": false,
+      "scmst": false
+    },
+    {
+      "timestamp": "11-03 17:15:37.374",
+      "frames_reported": 1,
+      "rate_hz": 96000,
+      "level": 1,
+      "limited": false,
+      "monitor": false,
+      "scmst": false
+    },
+    {
+      "timestamp": "11-03 17:15:52.384",
+      "frames_reported": 1,
+      "rate_hz": 96000,
+      "level": 1,
+      "limited": false,
+      "monitor": false,
+      "scmst": false
+    },
+    {
+      "timestamp": "11-03 17:16:07.394",
+      "frames_reported": 1,
+      "rate_hz": 96000,
+      "level": 1,
+      "limited": false,
+      "monitor": false,
+      "scmst": false
+    },
+    {
+      "timestamp": "11-03 17:16:22.404",
+      "frames_reported": 1,
+      "rate_hz": 96000,
+      "level": 1,
+      "limited": false,
+      "monitor": false,
+      "scmst": false
+    },
+    {
+      "timestamp": "11-03 17:16:37.414",
+      "frames_reported": 2,
+      "rate_hz": 96000,
+      "level": 1,
+      "limited": false,
+      "monitor": false,
+      "scmst": false
+    },
+    {
+      "timestamp": "11-03 17:16:52.424",
+      "frames_reported": 1,
+      "rate_hz": 96000,
+      "level": 1,
+      "limited": false,
+      "monitor": false,
+      "scmst": false
+    },
+    {
+      "timestamp": "11-03 17:17:07.434",
+      "frames_reported": 1,
+      "rate_hz": 96000,
+      "level": 1,
+      "limited": false,
+      "monitor": false,
+      "scmst": false
+    }
+  ],
+  "packet_framing_verified": false,
+  "negotiated_vendor_codec_id_verified": false,
+  "warnings": [
+    "Selected HAL codec and encoder logs establish live SSC operation.",
+    "Audio source resolution does not establish Bluetooth output rate.",
+    "SSC frame boundaries, media header and AVDTP vendor codec ID need HCI packet capture.",
+    "The peer MTU may be reported by HAL at the payload boundary; confirm transport header accounting from a live trace."
+  ]
+}
