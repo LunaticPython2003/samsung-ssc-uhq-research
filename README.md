@@ -113,6 +113,12 @@ The [November 4 2026 full sweep](docs/ssc-seven-rate-sweep-offload-2026-11-04.md
 
 The same investigation decompiled **`A2dpSscToHalConfig`** on the Fold7 and verified Samsung's AIDL SSC offload conversion interface. Neither routine establishes a different high-rate encoder. A [read-only BlueZ transport inspector](linux/ssc_transport_inspect.py) can report the codec and configuration once connected from the real Linux desktop; the negotiated **write MTU** requires `MediaTransport1.Acquire()` by the owning transport process.
 
+## Experimental native 886 kbps SSC transmission (November 4)
+
+The [native rate-table override report](docs/fold7-native-ssc-e4-live-override-2026-11-04.md) documents a **live Android 886-kbps SSC transmission experiment** on the Fold7 with Buds4 Pro connected: a 1.5-second, self-restoring edit of the running Samsung UHQ2 rate table (index 1, 584000 → 886000) produced **95 native encoder rate decisions at 886000** and a **1012-byte Samsung AVDTP/L2CAP media write** matching 12-byte RTP + 1000-byte E4. The packet submission returned success; after rollback Android remained connected at SSC/96kHz and the original table was verified. This proves an 886-kbps-sized packet can be submitted through Samsung's *native software Bluetooth stack*, **not yet that the Buds decoded the audio or that HCI delivered it**. A second test with adaptive quality index 2 did not select 886, showing that the override is index-dependent.
+
+The exact-firmware, temporary (no on-disk change) [probe source and safeguards](experiments/README.md) are included for reproducibility. A listener response and full HCI data trace remain the next required steps to establish actual 886-kbps playback.
+
 ## What's left
 
 1. Obtain an actual HCI AVDTP exchange to settle the vendor codec ID and peer configuration.
